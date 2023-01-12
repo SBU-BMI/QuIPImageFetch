@@ -5,9 +5,12 @@ import xml.dom.minidom
 
 # Option Configuration.
 parser = argparse.ArgumentParser(description='Download a specific tile from the tile server.')
+parser.add_argument('-b', '--base-url', metavar='YOUR_QUIP_URL', dest="baseurl", required=True, help='Give the base URL or your quip instance.')
+parser.add_argument('-u', '--username', metavar='USERNAME', dest="username", required=True, help='Your Quip username.')
+parser.add_argument('-p', '--password', metavar='PASSWORD', dest="password", required=True, help='Your Quip password.')
 parser.add_argument('--pid', metavar='PATHDB_ID', required=True, help='PathDB ID of the image.')
 parser.add_argument('-m', '--meta', action='store_true', default=False, help='Show metadata for this image.')
-parser.add_argument('-o', '--outdir', dest="outdir", help='Give an output directory the saved image.')
+parser.add_argument('-o', '--outdir', dest="outdir", help='Give an output directory the saved image.(Use trailing slashes)')
 parser.add_argument('-l', '--level', dest='level', default=10, help='Zoom level of the tile.')
 parser.add_argument('-x', dest='x_pos', default=0, help='X position of the tile.')
 parser.add_argument('-y', dest='y_pos', default=0, help='Y position of the tile.')
@@ -15,10 +18,10 @@ parser.add_argument('-y', dest='y_pos', default=0, help='Y position of the tile.
 args = parser.parse_args()
 
 # variables
-login_url = 'https://quip.bmi.stonybrook.edu/user/login?_format=json'
-jwt_url = 'https://quip.bmi.stonybrook.edu/jwt/token'
+login_url = args.baseurl + '/user/login?_format=json'
+jwt_url = args.baseurl + '/jwt/token'
 headers = { 'Content-Type': 'application/json' }
-body = { 'name': 'jbalsamo', 'pass': 'H8tha1dr' }
+body = { 'name': args.username, 'pass': args.password }
 
 session = requests.Session()  # create a Session object
 resp = session.post(login_url, json=body,headers=headers)
@@ -37,8 +40,8 @@ user_token = tout["token"]
 #print("Token: ",user_token)
 
 # setup formatted URLs
-meta_url = "https://quip.bmi.stonybrook.edu/caMicroscope/img/IIP/raw/?token={}&DeepZoom=pathdb*{}.dzi".format(user_token,args.pid)
-tile_url = "https://quip.bmi.stonybrook.edu/caMicroscope/img/IIP/raw/?token={}&DeepZoom=pathdb*{}_files/{}/{}_{}.jpg".format(user_token, args.pid,args.level,args.x_pos,args.y_pos)
+meta_url = args.baseurl + "/caMicroscope/img/IIP/raw/?token={}&DeepZoom=pathdb*{}.dzi".format(user_token,args.pid)
+tile_url = args.baseurl + "/caMicroscope/img/IIP/raw/?token={}&DeepZoom=pathdb*{}_files/{}/{}_{}.jpg".format(user_token, args.pid,args.level,args.x_pos,args.y_pos)
 
 results = session.get(tile_url)
 if results.status_code == 200:
